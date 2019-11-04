@@ -1,11 +1,27 @@
+from __future__ import unicode_literals
 import discord
 import requests
 import bs4
 import re
+import os
+from pytube import YouTube
 from discord.ext import commands
 
 bot = commands.Bot(command_prefix='.')
 bot.remove_command('help')
+
+queue = []
+
+ydl_opts = {
+    'format': 'bestaudio/best',
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'mp3',
+        'preferredquality': '192',
+    }],
+}
+
+
 
 commandList = {
             '.help:': 'Shows command list',
@@ -19,7 +35,7 @@ commandList = {
             '.queue:': 'Shows queue \\\\\\TODO\\\\\\',
             '.unmute': ' @username: Annoys user.  Aliases: [rzuc, rzuć, odmutuj]',
             '.kick': ' @username: Kicks user from channel.  Aliases: [wypad]'
-               }
+}
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~EVENTS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,6 +52,7 @@ async def on_ready():
         description='Bot\'s been enabled. Type \".help\" for more informations.',
         colour=discord.Colour.dark_blue()
     )
+
     embed.set_thumbnail(url=bot.user.avatar_url)
 
     for channels in bot.get_all_channels():
@@ -44,7 +61,6 @@ async def on_ready():
                 await channels.send(embed=embed)
 
     await bot.change_presence(activity=newActivity)
-
 
 @bot.event
 async def on_member_join(member):
@@ -66,6 +82,7 @@ async def on_message(Message):
         description='Try again on #muzyka <:tsun:616843907724083200>',
         colour=discord.Colour.dark_blue()
     )
+
     embed.set_thumbnail(url=bot.user.avatar_url)
 
     if Message.channel.name != 'muzyka' \
@@ -93,14 +110,27 @@ async def _ping(ctx):
         description=f'My ping is: {round(bot.latency * 1000)}MS',
         colour=discord.Colour.dark_blue()
     )
+
     embed.set_thumbnail(url=bot.user.avatar_url)
     await ctx.send(embed=embed)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~JOIN
 @bot.command(aliases=['j', 'join'])
 async def _join(ctx):
+    if ctx.author.voice is None:
+        await ctx.send("U have to be connected to a voice channel")
+    elif ctx.voice_client is not None:
+        await ctx.voice_client.move_to(ctx.author.voice.channel)
+    else:
+        await ctx.author.voice.channel.connect()
 
-    await ctx.author.voice.channel.connect()
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~LEAVE~~~~TODO
+@bot.command(aliases=['disconnect', 'leave'])
+async def _disconnect(ctx):
+    if ctx.voice_client is None:
+       await ctx.send("I have to be connected first")
+    else:
+       await ctx.voice_client.disconnect()
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~UNMUTE
 @bot.command(aliases=['rzuc', 'rzuć', 'odmutuj', 'unmute'])
@@ -127,6 +157,7 @@ async def _help(ctx):
         title='Here\'s your command list:',
         colour=discord.Colour.dark_blue()
     )
+
     for key in commandList.keys():
         embed.add_field(name=key, value=commandList[key], inline=False)
 
@@ -143,6 +174,7 @@ async def _meme(ctx, arg=1):
         description='Try again on #depression <:tsun:616843907724083200>',
         colour=discord.Colour.dark_blue()
     )
+
     embedWarning.set_thumbnail(url=bot.user.avatar_url)
 
     embedTooMuch = discord.Embed(
@@ -150,6 +182,7 @@ async def _meme(ctx, arg=1):
         description='10 is max, take it or leave it <:tsun:616843907724083200>',
         colour=discord.Colour.dark_blue()
     )
+
     embedTooMuch.set_thumbnail(url=bot.user.avatar_url)
 
     embedMeme = discord.Embed(
@@ -162,7 +195,7 @@ async def _meme(ctx, arg=1):
         await ctx.send(embed=embedTooMuch)
     else:
         for i in range(0, arg):
-            url = ' https://jbzdy.eu/losowe'
+            url = 'https://jbzdy.cc/losowe'
             res = requests.get(url)
             res.raise_for_status()
 
@@ -180,6 +213,36 @@ async def _meme(ctx, arg=1):
 @bot.command(aliases=[''])
 async def _clear(ctx):
     pass
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~TOKEN~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-bot.run('NjE2NzQyNzY2NjI1NTU0NDMy.XWhAug.RosTW7Cal5t1u4mOLdUcqgFFHeI')
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~PLAY!~~~~~~~~~~~~~~TODO
+
+
+@bot.command(aliases=["play"])
+async def _play(ctx, url):
+    if ctx.author.voice is None:
+        await ctx.send("U have to be connected to a voice channel")
+    elif ctx.voice_client is not None:
+        await ctx.voice_client.move_to(ctx.author.voice.channel)
+    elif ctx.voice_client is None:
+        await ctx.author.voice.channel.connect()
+
+    await ctx.send('going good')
+
+    yt = YouTube(url)
+    await ctx.send('going good')
+    stream = yt.streams.filter(only_audio=True).first()
+    await ctx.send('going good')
+    stream.download('/home/dairon/Downloads/PyTube')
+    await ctx.send('going good')
+    #
+    # for filename in os.listdir('/home/dairon/Downloads/PyTube'):
+    #     queue.append(filename)
+    # source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio('/home/dairon/Downloads/PyTube/'+queue[0]))
+    # source.volume = 1.0
+    #
+    # ctx.voice_client.play(source)
+    # queue.pop(0)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~TOKEN~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bot.run('NjE2NzQyNzY2NjI1NTU0NDMy.XXjdcA.6pN2Xq0bf3STyF-WOMtOCJiW6HM')
