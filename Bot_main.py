@@ -138,9 +138,9 @@ async def _unmute(ctx, member: discord.Member):
 
     for i in range(3):
         for channels in bot.get_all_channels():
-            if channels.name == 'Dupa mojego starego':
+            if channels.name == 'Channel1':
                 await member.move_to(channels)
-            elif channels.name == 'Dupa mojej starej':
+            elif channels.name == 'Channel2':
                 await member.move_to(channels)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~KICK
